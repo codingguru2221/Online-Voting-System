@@ -1,7 +1,9 @@
+
+
 # 🗳️ Online Voting System (Spring Boot + MySQL)
 
 An **industry-level Online Voting System** built with **Java, Spring Boot, MySQL, JWT, and Spring Security**.
-This project is designed for **secure, transparent, and one-time voting**, with **role-based access** for Voters, Admins, and Candidates.
+Designed for **secure, transparent, and one-time voting** with **role-based access** for Voters, Admins, and Candidates.
 
 ---
 
@@ -12,8 +14,6 @@ This project is designed for **secure, transparent, and one-time voting**, with 
 * **ORM:** Spring Data JPA (Hibernate)
 * **Security:** Spring Security + JWT + BCrypt
 * **Build Tool:** Maven
-* **Testing:** JUnit + Mockito
-* **Deployment Ready:** Docker + AWS (optional)
 
 ---
 
@@ -25,17 +25,17 @@ online-voting-system/
 │   ├── config/          # Security + JWT config
 │   ├── controller/      # REST APIs
 │   ├── dto/             # Request/Response models
-│   ├── entity/          # JPA Entities (Voter, Candidate, Election, Admin)
+│   ├── entity/          # Entities (Voter, Candidate, Admin, Election)
 │   ├── repository/      # JPA Repositories
 │   ├── security/        # JWT filters + Auth classes
 │   ├── service/         # Business logic
 │   └── OnlineVotingSystemApplication.java
 │
 │── src/main/resources/
-│   ├── application.yml  # MySQL + JWT + server configs
+│   ├── application.yml  # MySQL + JWT configs
 │   └── schema.sql       # DB initialization (optional)
 │
-└── pom.xml              # Dependencies (Spring Boot + MySQL + Security + JWT)
+└── pom.xml              # Dependencies
 ```
 
 ---
@@ -60,130 +60,59 @@ online-voting-system/
 
 ---
 
-## 🔑 Code Flow
+## 🔑 Corrected Rules
 
-* **Voter Signup**
-
-  * `/api/auth/register` → validates age (≥18) + legal document, assigns `UUID` as voterId.
-* **Login**
-
-  * `/api/auth/login` → JWT-based authentication (roles: VOTER / ADMIN).
-* **Admin**
-
-  * Created at first startup (in `admins` table).
-  * Only Admin can create new Admins & Candidates.
-* **Candidate Creation**
-
-  * `/api/admin/candidate` → creates candidate with unique `markName`.
-* **Voting**
-
-  * `/api/voter/vote/{candidateId}` → marks `has_voted=true` & increments candidate’s votes.
-* **Results**
-
-  * `/api/results` → shows results (votes per candidate).
+* **Signup** → Only VOTERS can self-register.
+* **Admin** → Only Admin can create new Candidates.
+* **Candidates** → Not derived from voters; created separately with unique identity (`markName` / symbol).
+* **Voting** → A voter can select **exactly one** candidate.
+* **Result** → Shows **total votes per candidate**.
 
 ---
 
-## ⚙️ pom.xml (Dependencies)
+## 🔁 Flow Chart
 
-```xml
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+```mermaid
+flowchart TD
+    A[Voter Signup] --> B[Login with JWT]
+    B -->|Role: VOTER| C[Vote for Candidate]
+    B -->|Role: ADMIN| D[Create Candidate]
+    C --> E[Mark has_voted = true]
+    C --> F[Increment Candidate Vote Count]
+    F --> G[Results]
+    D --> G[Results]
+```
 
-    <groupId>com.codex</groupId>
-    <artifactId>online-voting-system</artifactId>
-    <version>1.0.0</version>
-    <packaging>jar</packaging>
+---
 
-    <name>Online Voting System</name>
-    <description>Spring Boot Online Voting System with MySQL</description>
+## 🧩 Block Diagram
 
-    <properties>
-        <java.version>17</java.version>
-        <spring-boot.version>3.2.3</spring-boot.version>
-    </properties>
+```mermaid
+blockdiag {
+  default_shape = roundedbox;
 
-    <dependencies>
-        <!-- Spring Boot Starters -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
-        </dependency>
-
-        <!-- JWT -->
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-api</artifactId>
-            <version>0.11.5</version>
-        </dependency>
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-impl</artifactId>
-            <version>0.11.5</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-jackson</artifactId>
-            <version>0.11.5</version>
-            <scope>runtime</scope>
-        </dependency>
-
-        <!-- MySQL Driver -->
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-j</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-
-        <!-- Lombok -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
-        </dependency>
-
-        <!-- Testing -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
-</project>
+  Voter -> Auth [label = "JWT Login"];
+  Admin -> Auth [label = "JWT Login"];
+  Auth -> API [label = "Secure Access"];
+  API -> DB [label = "Read/Write Data"];
+  Voter -> API [label = "Vote"];
+  Admin -> API [label = "Manage Candidates"];
+  API -> Results [label = "Votes Count"];
+}
 ```
 
 ---
 
 ## 🚀 Running the Project
 
-1. Clone the repo
+1. **Clone Repo**
 
    ```sh
    git clone https://github.com/yourusername/online-voting-system.git
    cd online-voting-system
    ```
-2. Configure **MySQL** in `application.yml`
+
+2. **Configure MySQL in `application.yml`**
 
    ```yaml
    spring:
@@ -199,9 +128,12 @@ online-voting-system/
      secret: your_jwt_secret
      expiration: 3600000
    ```
-3. Run the app
+
+3. **Run App**
 
    ```sh
    mvn spring-boot:run
    ```
-4. Access APIs at → `http://localhost:8080/api/...`
+
+4. **Access APIs** → `http://localhost:8080/api/...`
+
