@@ -83,25 +83,7 @@ flowchart TD
     D --> G[Results]
 ```
 
----
 
-## 🧩 Block Diagram
-
-```mermaid
-blockdiag {
-  default_shape = roundedbox;
-
-  Voter -> Auth [label = "JWT Login"];
-  Admin -> Auth [label = "JWT Login"];
-  Auth -> API [label = "Secure Access"];
-  API -> DB [label = "Read/Write Data"];
-  Voter -> API [label = "Vote"];
-  Admin -> API [label = "Manage Candidates"];
-  API -> Results [label = "Votes Count"];
-}
-```
-
----
 
 ## 🚀 Running the Project
 
